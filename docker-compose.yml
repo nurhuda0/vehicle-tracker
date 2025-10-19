@@ -1,0 +1,80 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: vehicle-tracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vehicle_tracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - vehicle-tracker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vehicle_tracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Vehicle Tracker API
+  api:
+    build: .
+    container_name: vehicle-tracker-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/vehicle_tracker
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_REFRESH_SECRET: your-super-secret-refresh-key-change-in-production
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PORT: 3000
+      CORS_ORIGIN: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - vehicle-tracker-network
+    volumes:
+      - ./uploads:/app/uploads
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        sleep 20 &&
+        npm start
+      "
+
+  # pgAdmin (Optional - untuk mengelola database)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: vehicle-tracker-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@vehicletracker.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - vehicle-tracker-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  vehicle-tracker-network:
+    driver: bridge
