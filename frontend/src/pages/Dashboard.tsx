@@ -7,14 +7,11 @@ import {
   CalendarIcon, 
   DocumentArrowDownIcon,
   MapPinIcon,
-  ClockIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon,
   ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import Layout from '../components/Layout';
 import Card from '../components/Card';
-import StatCard from '../components/StatCard';
 
 interface Vehicle {
   id: string;
@@ -73,48 +70,8 @@ const Dashboard: React.FC = () => {
   const vehicles = vehiclesData?.data?.vehicles || [];
   const totalPages = vehiclesData?.data?.pagination?.totalPages || 0;
 
-  // Mock statistics data
-  const stats = {
-    totalVehicles: vehicles.length,
-    activeVehicles: vehicles.filter((v: Vehicle) => v.status === 'ACTIVE').length,
-    maintenanceDue: 3,
-    alerts: 2
-  };
-
   return (
     <Layout title="Dashboard" subtitle="Fleet Management Overview">
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Vehicles"
-          value={stats.totalVehicles}
-          change={{ value: "+2", type: "increase" }}
-          icon={<TruckIcon />}
-          color="blue"
-        />
-        <StatCard
-          title="Active Vehicles"
-          value={stats.activeVehicles}
-          change={{ value: "+1", type: "increase" }}
-          icon={<CheckCircleIcon />}
-          color="green"
-        />
-        <StatCard
-          title="Maintenance Due"
-          value={stats.maintenanceDue}
-          change={{ value: "-1", type: "decrease" }}
-          icon={<ClockIcon />}
-          color="yellow"
-        />
-        <StatCard
-          title="Active Alerts"
-          value={stats.alerts}
-          change={{ value: "0", type: "neutral" }}
-          icon={<ExclamationTriangleIcon />}
-          color="red"
-        />
-      </div>
-
       {/* Vehicle List */}
       <Card 
         title="Vehicle Fleet" 
