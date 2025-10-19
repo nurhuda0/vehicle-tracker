@@ -3,8 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import VehicleDetailPage from './pages/VehicleDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import TailwindTest from './components/TailwindTest';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -39,8 +39,12 @@ function App() {
               }
             />
             <Route
-              path="/test"
-              element={<TailwindTest />}
+              path="/vehicle/:vehicleId"
+              element={
+                <ProtectedRoute>
+                  <VehicleDetailPage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/"

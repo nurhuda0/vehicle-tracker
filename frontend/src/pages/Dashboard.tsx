@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { vehicleAPI, reportAPI } from '../services/api';
-import { useAuthStore } from '../store/authStore';
 import { 
   TruckIcon, 
   CalendarIcon, 
@@ -9,12 +9,12 @@ import {
   MapPinIcon,
   ClockIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import Layout from '../components/Layout';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
-import VehicleDetailModal from '../components/VehicleDetailModal';
 
 interface Vehicle {
   id: string;
@@ -29,20 +29,19 @@ interface Vehicle {
 }
 
 const Dashboard: React.FC = () => {
-  const { } = useAuthStore();
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<'date' | 'plateNumber' | 'status'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { data: vehiclesData, isLoading, error } = useQuery({
-    queryKey: ['vehicles', currentPage, limit],
-    queryFn: () => vehicleAPI.getVehicles(currentPage, limit),
+    queryKey: ['vehicles', currentPage, limit, sortBy, sortOrder],
+    queryFn: () => vehicleAPI.getVehicles(currentPage, limit, sortBy, sortOrder),
   });
 
   const handleVehicleClick = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
-    setIsModalOpen(true);
+    navigate(`/vehicle/${vehicle.id}`);
   };
 
   const handleDownloadReport = async (vehicleId: string) => {
@@ -83,7 +82,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Layout title="Dashboard" subtitle="Fleet Management Overview" currentPage="dashboard">
+    <Layout title="Dashboard" subtitle="Fleet Management Overview">
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -121,10 +120,36 @@ const Dashboard: React.FC = () => {
         title="Vehicle Fleet" 
         subtitle="Manage and monitor your vehicle fleet"
         actions={
-          <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <TruckIcon className="h-4 w-4 mr-2" />
-            Add Vehicle
-          </button>
+          <div className="flex items-center space-x-3">
+            {/* Sort Controls */}
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Sort by:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'date' | 'plateNumber' | 'status')}
+                className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="date">Date</option>
+                <option value="plateNumber">Plate Number</option>
+                <option value="status">Status</option>
+              </select>
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
+                <ArrowsUpDownIcon className="h-4 w-4" />
+              </button>
+            </div>
+            
+            {/* Download Report Button */}
+            <button
+              onClick={() => handleDownloadReport('all')}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+              Download Report
+            </button>
+          </div>
         }
       >
         {isLoading ? (
@@ -178,13 +203,6 @@ const Dashboard: React.FC = () => {
                     >
                       <CalendarIcon className="h-4 w-4 mr-1" />
                       View Details
-                    </button>
-                    <button
-                      onClick={() => handleDownloadReport(vehicle.id)}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
-                    >
-                      <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-                      Download Report
                     </button>
                   </div>
                 </div>
@@ -241,13 +259,6 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </Card>
-
-      {/* Vehicle Detail Modal */}
-      <VehicleDetailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        vehicle={selectedVehicle}
-      />
     </Layout>
   );
 };

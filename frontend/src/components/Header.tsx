@@ -4,9 +4,7 @@ import { authAPI } from '../services/api';
 import { 
   TruckIcon, 
   ArrowRightOnRectangleIcon, 
-  UserCircleIcon,
-  BellIcon,
-  Cog6ToothIcon
+  UserCircleIcon
 } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
@@ -60,18 +58,8 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right side - User info and actions */}
           <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-              <BellIcon className="h-5 w-5" />
-            </button>
-
-            {/* Settings */}
-            <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-              <Cog6ToothIcon className="h-5 w-5" />
-            </button>
-
             {/* User Profile */}
-            <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
+            <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-3">
                 <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
                   <UserCircleIcon className="h-5 w-5 text-white" />

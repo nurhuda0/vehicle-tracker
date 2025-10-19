@@ -96,8 +96,16 @@ export const authAPI = {
 
 // Vehicle API
 export const vehicleAPI = {
-  getVehicles: async (page: number = 1, limit: number = 10) => {
-    const response = await api.get(`/vehicles?page=${page}&limit=${limit}`);
+  getVehicles: async (page: number = 1, limit: number = 10, sortBy?: string, sortOrder?: string) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (sortBy) params.append('sortBy', sortBy);
+    if (sortOrder) params.append('sortOrder', sortOrder);
+    
+    const response = await api.get(`/vehicles?${params.toString()}`);
     return response.data;
   },
   
