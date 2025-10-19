@@ -86,7 +86,6 @@ __tests__/
 .eslintrc*
 .prettierrc*
 .editorconfig
-vite.config.ts
 
 # Storybook
 .storybook/
