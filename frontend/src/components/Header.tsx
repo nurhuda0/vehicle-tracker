@@ -14,7 +14,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ 
   title = "Dashboard", 
-  subtitle = "Fleet Management Overview" 
+  subtitle = "Vehicle Tracker" 
 }) => {
   const { user, logout } = useAuthStore();
 

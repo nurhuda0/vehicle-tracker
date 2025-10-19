@@ -1,14 +1,17 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth';
+import {
+  generateVehicleReport,
+  generateGeneralReport,
+} from '../controllers/reportController';
 
 const router = Router();
 
 // All report routes require authentication
 router.use(authenticateToken);
 
-// Placeholder routes - will be implemented later
-router.get('/generate', (req, res) => {
-  res.json({ message: 'Generate report - to be implemented' });
-});
+// Report routes
+router.get('/vehicle/:vehicleId', generateVehicleReport);
+router.get('/generate', generateGeneralReport);
 
 export default router;

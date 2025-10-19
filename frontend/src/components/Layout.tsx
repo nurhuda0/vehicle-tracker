@@ -10,7 +10,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ 
   children, 
   title = "Dashboard", 
-  subtitle = "Fleet Management Overview"
+  subtitle = "Vehicle Tracker"
 }) => {
   return (
     <div className="min-h-screen bg-gray-50">

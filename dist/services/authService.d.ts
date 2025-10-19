@@ -1,5 +1,5 @@
 import { User } from '@prisma/client';
-import { LoginInput, RegisterInput } from '@/validators/auth';
+import { LoginInput, RegisterInput } from '../validators/auth';
 export interface AuthTokens {
     accessToken: string;
     refreshToken: string;

@@ -127,6 +127,14 @@ export const reportAPI = {
       params: { startDate, endDate },
       responseType: 'blob',
     });
-    return response.data;
+    return response;
+  },
+  
+  downloadGeneralReport: async (startDate: string, endDate: string) => {
+    const response = await api.get('/reports/generate', {
+      params: { startDate, endDate },
+      responseType: 'blob',
+    });
+    return response;
   },
 };

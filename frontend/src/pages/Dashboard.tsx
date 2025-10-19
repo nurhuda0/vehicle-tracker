@@ -57,7 +57,10 @@ const Dashboard: React.FC = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `vehicle-report-${vehicleId}.xlsx`);
+      const filename = vehicleId === 'all' 
+        ? `vehicle-report-all-${startDate.toISOString().split('T')[0]}-to-${endDate.toISOString().split('T')[0]}.xlsx`
+        : `vehicle-report-${vehicleId}-${startDate.toISOString().split('T')[0]}-to-${endDate.toISOString().split('T')[0]}.xlsx`;
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -71,7 +74,7 @@ const Dashboard: React.FC = () => {
   const totalPages = vehiclesData?.data?.pagination?.totalPages || 0;
 
   return (
-    <Layout title="Dashboard" subtitle="Fleet Management Overview">
+    <Layout title="Dashboard" subtitle="Vehicle Tracker">
       {/* Vehicle List */}
       <Card 
         title="Vehicle Fleet" 
