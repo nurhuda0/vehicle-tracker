@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { vehicleAPI, authAPI, reportAPI } from '../services/api';
+import { vehicleAPI, reportAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { ArrowRightOnRectangleIcon, TruckIcon, CalendarIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { 
+  TruckIcon, 
+  CalendarIcon, 
+  DocumentArrowDownIcon,
+  MapPinIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
+import Layout from '../components/Layout';
+import Card from '../components/Card';
+import StatCard from '../components/StatCard';
 import VehicleDetailModal from '../components/VehicleDetailModal';
 
 interface Vehicle {
@@ -12,32 +23,22 @@ interface Vehicle {
   brand: string;
   year: number;
   status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
+  location?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 const Dashboard: React.FC = () => {
-  const { user, logout } = useAuthStore();
+  const { } = useAuthStore();
   const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(10);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const limit = 10;
 
   const { data: vehiclesData, isLoading, error } = useQuery({
     queryKey: ['vehicles', currentPage, limit],
     queryFn: () => vehicleAPI.getVehicles(currentPage, limit),
   });
-
-  const handleLogout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      logout();
-    }
-  };
 
   const handleVehicleClick = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
@@ -56,194 +57,198 @@ const Dashboard: React.FC = () => {
         endDate.toISOString().split('T')[0]
       );
       
-      // Create blob and download
-      const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `vehicle-report-${vehicleId}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `vehicle-report-${vehicleId}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
     } catch (error) {
       console.error('Download error:', error);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'INACTIVE':
-        return 'bg-red-100 text-red-800';
-      case 'MAINTENANCE':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const vehicles = vehiclesData?.data?.vehicles || [];
+  const totalPages = vehiclesData?.data?.pagination?.totalPages || 0;
+
+  // Mock statistics data
+  const stats = {
+    totalVehicles: vehicles.length,
+    activeVehicles: vehicles.filter((v: Vehicle) => v.status === 'ACTIVE').length,
+    maintenanceDue: 3,
+    alerts: 2
   };
 
-  const totalPages = vehiclesData?.data?.totalPages || 1;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <TruckIcon className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-3xl font-bold text-gray-900">Vehicle Tracker</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Welcome, {user?.name} ({user?.role})
-              </span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2" />
-                Logout
-              </button>
+    <Layout title="Dashboard" subtitle="Fleet Management Overview" currentPage="dashboard">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Total Vehicles"
+          value={stats.totalVehicles}
+          change={{ value: "+2", type: "increase" }}
+          icon={<TruckIcon />}
+          color="blue"
+        />
+        <StatCard
+          title="Active Vehicles"
+          value={stats.activeVehicles}
+          change={{ value: "+1", type: "increase" }}
+          icon={<CheckCircleIcon />}
+          color="green"
+        />
+        <StatCard
+          title="Maintenance Due"
+          value={stats.maintenanceDue}
+          change={{ value: "-1", type: "decrease" }}
+          icon={<ClockIcon />}
+          color="yellow"
+        />
+        <StatCard
+          title="Active Alerts"
+          value={stats.alerts}
+          change={{ value: "0", type: "neutral" }}
+          icon={<ExclamationTriangleIcon />}
+          color="red"
+        />
+      </div>
+
+      {/* Vehicle List */}
+      <Card 
+        title="Vehicle Fleet" 
+        subtitle="Manage and monitor your vehicle fleet"
+        actions={
+          <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <TruckIcon className="h-4 w-4 mr-2" />
+            Add Vehicle
+          </button>
+        }
+      >
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="text-red-600 mb-4">
+              <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-2" />
+              <p>Error loading vehicles</p>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Vehicle List</h2>
-              <p className="text-gray-600">Manage and monitor your vehicle fleet</p>
-            </div>
-
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-600">Error loading vehicles</p>
-              </div>
-            ) : (
-              <>
-                {/* Vehicles Table */}
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                  <ul className="divide-y divide-gray-200">
-                    {vehiclesData?.data?.vehicles?.map((vehicle: Vehicle) => (
-                      <li key={vehicle.id}>
-                        <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                              <TruckIcon className="h-8 w-8 text-gray-400" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="flex items-center">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {vehicle.brand} {vehicle.model}
-                                </p>
-                                <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(vehicle.status)}`}>
-                                  {vehicle.status}
-                                </span>
-                              </div>
-                              <div className="mt-1">
-                                <p className="text-sm text-gray-500">
-                                  Plate: {vehicle.plateNumber} • Year: {vehicle.year}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleVehicleClick(vehicle)}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                              <CalendarIcon className="h-4 w-4 mr-1" />
-                              View Details
-                            </button>
-                            <button
-                              onClick={() => handleDownloadReport(vehicle.id)}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                            >
-                              <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-                              Download Report
-                            </button>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
-                    <div className="flex-1 flex justify-between sm:hidden">
-                      <button
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
+        ) : (
+          <div className="space-y-4">
+            {vehicles.map((vehicle: Vehicle) => (
+              <div key={vehicle.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                      <TruckIcon className="h-6 w-6 text-white" />
                     </div>
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm text-gray-700">
-                          Showing page <span className="font-medium">{currentPage}</span> of{' '}
-                          <span className="font-medium">{totalPages}</span>
-                        </p>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{vehicle.plateNumber}</h3>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          vehicle.status === 'ACTIVE' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {vehicle.status}
+                        </span>
                       </div>
-                      <div>
-                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                          <button
-                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Previous
-                          </button>
-                          <button
-                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            Next
-                          </button>
-                        </nav>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>{vehicle.model}</span>
+                        <span>•</span>
+                        <span>{vehicle.year}</span>
+                        <span>•</span>
+                        <span className="flex items-center">
+                          <MapPinIcon className="h-4 w-4 mr-1" />
+                          {vehicle.location || 'Unknown'}
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
-              </>
-            )}
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleVehicleClick(vehicle)}
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                    >
+                      <CalendarIcon className="h-4 w-4 mr-1" />
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => handleDownloadReport(vehicle.id)}
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                    >
+                      <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
+                      Download Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </main>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing page <span className="font-medium">{currentPage}</span> of{' '}
+                  <span className="font-medium">{totalPages}</span>
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* Vehicle Detail Modal */}
-      {selectedVehicle && (
-        <VehicleDetailModal
-          vehicle={selectedVehicle}
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedVehicle(null);
-          }}
-        />
-      )}
-    </div>
+      <VehicleDetailModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        vehicle={selectedVehicle}
+      />
+    </Layout>
   );
 };
 
