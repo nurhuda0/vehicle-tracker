@@ -1,5 +1,7 @@
-# Use Node.js 18 Debian Bookworm as base image (has OpenSSL 3.x)
-FROM node:18-bookworm-slim
+# Multi-stage Dockerfile for Vehicle Tracker Backend
+
+# Stage 1: Build Stage
+FROM node:18-bookworm-slim AS builder
 
 # Install OpenSSL and other dependencies for Prisma
 RUN apt-get update -y && apt-get install -y openssl ca-certificates
@@ -22,16 +24,39 @@ RUN npx prisma generate
 # Build the application
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# Stage 2: Production Stage
+FROM node:18-bookworm-slim AS production
+
+# Install OpenSSL and other dependencies for Prisma
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Create non-root user
-RUN groupadd -g 1001 nodejs
-RUN useradd -r -u 1001 -g nodejs nodejs
+RUN groupadd -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
 USER nodejs
+
+# Expose port
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

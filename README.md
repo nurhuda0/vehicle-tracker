@@ -1,6 +1,32 @@
-# Vehicle Tracker Dashboard Backend
+# Vehicle Tracker Dashboard
 
-Backend API untuk aplikasi Vehicle Tracker Dashboard yang dibangun dengan Node.js, TypeScript, Express.js, dan PostgreSQL.
+Aplikasi Vehicle Tracker Dashboard yang dibangun dengan Node.js, TypeScript, Express.js, React, dan PostgreSQL. Aplikasi ini menyediakan sistem manajemen kendaraan dengan fitur tracking real-time, laporan, dan dashboard analytics.
+
+## 🏗️ Arsitektur Aplikasi
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend API   │    │   PostgreSQL    │
+│   (React)       │◄──►│   (Express.js)  │◄──►│   Database      │
+│   Port: 3001    │    │   Port: 3000    │    │   Port: 5432    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │
+         └───────────────────────┼───────────────────────────────┐
+                                 │                               │
+                    ┌─────────────────┐              ┌─────────────────┐
+                    │   Nginx         │              │   Docker Hub    │
+                    │   Reverse Proxy │              │   (Images)      │
+                    │   SSL/HTTPS     │              │                 │
+                    └─────────────────┘              └─────────────────┘
+```
+
+### Komponen Utama:
+- **Frontend**: React dengan TypeScript, Tailwind CSS, Vite
+- **Backend**: Node.js dengan Express.js, TypeScript
+- **Database**: PostgreSQL dengan Prisma ORM
+- **Containerization**: Docker dengan multi-stage builds
+- **Reverse Proxy**: Nginx dengan SSL (Let's Encrypt)
+- **CI/CD**: GitHub Actions dengan automated testing dan deployment
 
 ## 🚀 Fitur
 
@@ -30,7 +56,33 @@ Backend API untuk aplikasi Vehicle Tracker Dashboard yang dibangun dengan Node.j
 - PostgreSQL (v12 atau lebih baru)
 - npm atau yarn
 
-## 🔧 Installation
+## 🐳 Docker Setup (Recommended)
+
+### Quick Start dengan Docker Compose
+
+1. Clone repository:
+```bash
+git clone <repository-url>
+cd vehicle-tracker
+```
+
+2. Setup environment variables:
+```bash
+cp env.example .env
+```
+
+3. Start semua services:
+```bash
+docker-compose up -d
+```
+
+Aplikasi akan tersedia di:
+- **Frontend**: http://localhost:3001
+- **Backend API**: http://localhost:3000
+- **API Documentation**: http://localhost:3000/api-docs
+- **pgAdmin**: http://localhost:5050
+
+### Development Setup
 
 1. Clone repository:
 ```bash
@@ -40,7 +92,13 @@ cd vehicle-tracker
 
 2. Install dependencies:
 ```bash
+# Backend
 npm install
+
+# Frontend
+cd frontend
+npm install
+cd ..
 ```
 
 3. Setup environment variables:
@@ -60,6 +118,16 @@ npm run migrate
 
 # Seed database dengan data dummy
 npm run seed
+```
+
+5. Start development servers:
+```bash
+# Terminal 1: Backend
+npm run dev
+
+# Terminal 2: Frontend
+cd frontend
+npm run dev
 ```
 
 ## 🚀 Running the Application
@@ -195,15 +263,236 @@ NODE_ENV="development"
 CORS_ORIGIN="http://localhost:3001"
 ```
 
+## 🚀 Deployment
+
+### Production Deployment ke VPS
+
+1. **Persiapan Server (Ubuntu 20.04+)**
+```bash
+# Clone repository ke server
+git clone <repository-url> /opt/vehicle-tracker
+cd /opt/vehicle-tracker
+
+# Jalankan script deployment
+sudo chmod +x deploy/deploy.sh
+sudo ./deploy/deploy.sh
+```
+
+2. **Setup Environment Variables**
+```bash
+# Edit file environment production
+sudo nano .env
+
+# Atau copy dari template
+sudo cp env.example .env
+```
+
+3. **Setup SSL dengan Let's Encrypt**
+```bash
+# Jalankan script SSL setup
+sudo chmod +x deploy/setup-ssl.sh
+sudo DOMAIN=your-domain.com ./deploy/setup-ssl.sh
+```
+
+4. **Start Application**
+```bash
+# Start dengan systemd service
+sudo systemctl start vehicle-tracker
+sudo systemctl enable vehicle-tracker
+
+# Check status
+sudo systemctl status vehicle-tracker
+```
+
+### Manual Docker Deployment
+
+```bash
+# Build images
+docker build -t vehicle-tracker-backend .
+docker build -t vehicle-tracker-frontend ./frontend
+
+# Run dengan production compose
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+## 🔄 CI/CD Pipeline
+
+Aplikasi menggunakan GitHub Actions untuk CI/CD pipeline yang mencakup:
+
+### Workflow Steps:
+1. **Backend Testing**: Lint, unit tests, integration tests
+2. **Frontend Testing**: Lint, build verification
+3. **Docker Build**: Multi-stage builds untuk backend dan frontend
+4. **Docker Push**: Push images ke Docker Hub
+5. **Deploy**: Automated deployment ke VPS via SSH
+
+### Required Secrets:
+Tambahkan secrets berikut di GitHub repository settings:
+
+```
+DOCKER_USERNAME=your-docker-username
+DOCKER_PASSWORD=your-docker-password
+SERVER_HOST=your-server-ip
+SERVER_USERNAME=your-server-username
+SERVER_SSH_KEY=your-private-ssh-key
+```
+
+### Pipeline Triggers:
+- **Push to main**: Full CI/CD pipeline dengan deployment
+- **Pull Request**: Testing dan build verification
+- **Push to develop**: Testing dan build tanpa deployment
+
+## 📊 Monitoring & Logs
+
+### Application Logs
+```bash
+# View application logs
+sudo journalctl -u vehicle-tracker -f
+
+# View Docker logs
+docker-compose logs -f
+```
+
+### Health Checks
+- **Application Health**: `https://your-domain.com/health`
+- **API Documentation**: `https://your-domain.com/api-docs`
+
 ## 📝 Scripts
 
+### Backend Scripts
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm start` - Start production server
 - `npm test` - Run tests
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
 - `npm run migrate` - Run database migrations
 - `npm run seed` - Seed database
 - `npm run generate` - Generate Prisma client
+
+### Frontend Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Docker Scripts
+- `docker-compose up -d` - Start all services
+- `docker-compose down` - Stop all services
+- `docker-compose logs -f` - View logs
+- `docker-compose build` - Rebuild images
+
+## 🧪 Testing & Coverage
+
+### Test Coverage Requirements
+- **Branches**: 70%
+- **Functions**: 70%
+- **Lines**: 70%
+- **Statements**: 70%
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run frontend tests
+cd frontend && npm test
+```
+
+### Coverage Reports
+Coverage reports tersedia di:
+- **HTML Report**: `coverage/index.html`
+- **LCOV Report**: `coverage/lcov.info`
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**
+```bash
+# Check if PostgreSQL is running
+docker-compose ps postgres
+
+# Check database logs
+docker-compose logs postgres
+```
+
+2. **Port Already in Use**
+```bash
+# Check what's using the port
+sudo netstat -tulpn | grep :3000
+
+# Kill process using port
+sudo kill -9 <PID>
+```
+
+3. **Docker Build Fails**
+```bash
+# Clean Docker cache
+docker system prune -a
+
+# Rebuild without cache
+docker-compose build --no-cache
+```
+
+4. **SSL Certificate Issues**
+```bash
+# Check certificate status
+sudo certbot certificates
+
+# Renew certificate manually
+sudo certbot renew --dry-run
+```
+
+### Performance Optimization
+
+1. **Database Optimization**
+- Enable connection pooling
+- Add database indexes
+- Regular database maintenance
+
+2. **Frontend Optimization**
+- Enable gzip compression
+- Implement caching strategies
+- Optimize bundle size
+
+3. **Backend Optimization**
+- Implement caching (Redis)
+- Database query optimization
+- Rate limiting
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+For support, email support@vehicletracker.com or create an issue in this repository.
+
+## 🎯 Roadmap
+
+- [ ] Real-time tracking dengan WebSocket
+- [ ] Mobile app (React Native)
+- [ ] Advanced analytics dashboard
+- [ ] Integration dengan GPS devices
+- [ ] Multi-tenant support
+- [ ] API rate limiting improvements
+- [ ] Redis caching implementation
+- [ ] Kubernetes deployment support
 

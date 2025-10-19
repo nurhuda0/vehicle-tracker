@@ -12,7 +12,6 @@ coverage
 # Environment files
 .env
 .env.*
-!.env.example
 
 # Logs
 logs
@@ -24,8 +23,9 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# Coverage directory
 .nyc_output
+coverage
 
 # Dependency directories
 jspm_packages/
@@ -65,42 +65,43 @@ Thumbs.db
 
 # Docker
 .dockerignore
-docker-compose*.yml
 Dockerfile*
 .docker
 
 # Documentation
 README.md
-SETUP.md
 *.md
 docs/
 
-# CI/CD
-.github/
-.gitlab-ci.yml
-
 # Test files
-src/__tests__/
-jest.config.js
-*.test.ts
-*.spec.ts
-test/
+src/**/*.test.tsx
+src/**/*.spec.tsx
+src/**/*.test.ts
+src/**/*.spec.ts
+__tests__/
+*.test.*
+*.spec.*
 
 # Development files
-nodemon.json
 .eslintrc*
 .prettierrc*
 .editorconfig
+vite.config.ts
 
-# Prisma (keep schema, ignore migrations in production)
-prisma/migrations/
+# Storybook
+.storybook/
+storybook-static/
 
-# Uploads (will be mounted as volume)
-uploads/
+# Cypress
+cypress/
+cypress.json
+cypress.env.json
 
-# Deployment scripts
-deploy/
-nginx/
+# Playwright
+playwright-report/
+test-results/
+playwright.config.*
 
-# Frontend (for backend Dockerfile)
-frontend/
+# Temporary files
+*.tmp
+*.temp
