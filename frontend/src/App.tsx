@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import TailwindTest from './components/TailwindTest';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -36,6 +37,10 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/test"
+              element={<TailwindTest />}
             />
             <Route
               path="/"
