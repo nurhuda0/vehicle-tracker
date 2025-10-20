@@ -53,12 +53,10 @@ api.interceptors.response.use(
           return api(originalRequest);
         } catch (refreshError) {
           logout();
-          window.location.href = '/login';
           return Promise.reject(refreshError);
         }
       } else {
         logout();
-        window.location.href = '/login';
       }
     }
     
