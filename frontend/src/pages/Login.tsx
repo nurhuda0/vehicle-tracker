@@ -54,7 +54,7 @@ const Login: React.FC = () => {
               Vehicle Tracker
             </h2>
             <p className="mt-2 text-blue-100">
-              Fleet Management Dashboard
+              Dashboard
             </p>
           </div>
 
@@ -144,7 +144,7 @@ const Login: React.FC = () => {
               </button>
             </form>
 
-            {/* Test Credentials */}
+            
             <div className="mt-8 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-sm font-medium text-gray-900 mb-3">Test Credentials</h3>
               <div className="space-y-2 text-xs text-gray-600">
@@ -152,10 +152,10 @@ const Login: React.FC = () => {
                   <span className="font-medium">Admin:</span>
                   <span>admin@vehicletracker.com / admin123</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="font-medium">User:</span>
                   <span>user@vehicletracker.com / user123</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
